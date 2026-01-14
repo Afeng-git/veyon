@@ -1,4 +1,4 @@
-name: Windows Build Test
+name: Build Veyon (Step 1 - Configure)
 
 on:
   workflow_dispatch:
@@ -7,8 +7,27 @@ on:
 jobs:
   windows:
     runs-on: windows-2022
+
     steps:
-    - name: Show system
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    - name: Install Qt 5.15.2 (MSVC 2019)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2'
+        arch: 'win64_msvc2019_64'
+        cache: true
+
+    - name: Configure CMake
       run: |
-        systeminfo
-        echo "Windows runner is working"
+        mkdir build
+        cd build
+        cmake .. -G "Visual Studio 16 2019" -A x64 -DVEYON_BUILD_WIN32=ON
