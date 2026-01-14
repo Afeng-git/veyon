@@ -24,7 +24,7 @@ jobs:
       with:
         version: '5.15.2'
         arch: 'win64_msvc2019_64'
-        cache: true
+        cache: false
 
     - name: Configure CMake
       run: |
