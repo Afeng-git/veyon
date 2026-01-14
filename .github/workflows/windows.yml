@@ -16,12 +16,12 @@ jobs:
 
     steps:
     - name: Checkout repository
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Setup Python
       uses: actions/setup-python@v4
       with:
-        python-version: 3.11
+        python-version: '3.11'
 
     - name: Install aqtinstall
       run: |
@@ -33,19 +33,18 @@ jobs:
         aqt install-qt windows desktop 6.8.3 msvc2019_64 --output-dir C:/Qt
 
     - name: Add Qt to PATH
-      run: |
-        echo "C:\Qt\6.8.3\msvc2019_64\bin" >> $Env:GITHUB_PATH
+      run: echo "C:\\Qt\\6.8.3\\msvc2019_64\\bin" >> $Env:GITHUB_PATH
 
     - name: Install CMake
-      uses: lukka/get-cmake@v3
+      uses: lukka/get-cmake@latest           # ← 使用 latest
       with:
-        version: '3.27.6'
+        cmakeVersion: "latest"                # 安装最新版本
 
     - name: Configure Veyon
       run: |
         mkdir build
         cd build
-        cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2019_64
+        cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH="C:/Qt/6.8.3/msvc2019_64"
 
     - name: Build Veyon
       run: cmake --build build --config Release
@@ -58,7 +57,7 @@ jobs:
         tar -czvf veyon-windows-release.tar.gz ReleasePackage
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v4
+      uses: actions/upload-artifact@v4        # 最新版本
       with:
         name: veyon-windows
         path: build/veyon-windows-release.tar.gz
