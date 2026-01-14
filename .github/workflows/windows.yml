@@ -11,7 +11,7 @@ jobs:
     runs-on: windows-2022
 
     env:
-      VSCMD_ARG_TGT_ARCH: x64  # MSVC 64-bit
+      VSCMD_ARG_TGT_ARCH: x64
       PYTHONIOENCODING: utf-8
 
     steps:
@@ -37,7 +37,7 @@ jobs:
         echo "C:\Qt\6.8.3\msvc2019_64\bin" >> $Env:GITHUB_PATH
 
     - name: Install CMake
-      uses: lukka/get-cmake@v4
+      uses: lukka/get-cmake@v3
       with:
         version: '3.27.6'
 
@@ -48,10 +48,9 @@ jobs:
         cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2019_64
 
     - name: Build Veyon
-      run: |
-        cmake --build build --config Release
+      run: cmake --build build --config Release
 
-    - name: Package
+    - name: Package Release
       run: |
         cd build
         mkdir ReleasePackage
@@ -59,7 +58,7 @@ jobs:
         tar -czvf veyon-windows-release.tar.gz ReleasePackage
 
     - name: Upload artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: veyon-windows
         path: build/veyon-windows-release.tar.gz
