@@ -30,7 +30,8 @@ jobs:
 
     - name: Install Qt 6.8.3 MSVC2019
       run: |
-        aqt install-qt windows desktop 6.8.3 msvc2019_64 --output-dir C:/Qt
+        python -m aqt install-qt windows desktop 6.8.3 msvc2019_64 --outputdir "C:\Qt"
+
 
     - name: Add Qt to PATH
       run: echo "C:\\Qt\\6.8.3\\msvc2019_64\\bin" >> $Env:GITHUB_PATH
