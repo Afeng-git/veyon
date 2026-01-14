@@ -1,0 +1,14 @@
+name: Windows Build Test
+
+on:
+  workflow_dispatch:
+  push:
+
+jobs:
+  windows:
+    runs-on: windows-2022
+    steps:
+    - name: Show system
+      run: |
+        systeminfo
+        echo "Windows runner is working"
