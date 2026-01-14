@@ -1,0 +1,48 @@
+name: Build Veyon Step 1 - Configure (No Cache)
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ "*" ]   # 监听所有分支
+
+jobs:
+  windows:
+    runs-on: windows-2022
+
+    steps:
+    # 1️⃣ 拉取源码
+    - name: Checkout source
+      uses: actions/checkout@v4
+      with:
+        submodules: recursive
+
+    # 2️⃣ 配置 MSVC
+    - name: Setup MSVC
+      uses: ilammy/msvc-dev-cmd@v1
+      with:
+        arch: x64
+
+    # 3️⃣ 安装 Qt（不使用 cache）
+    - name: Install Qt 5.15.2 (MSVC 2019)
+      uses: jurplel/install-qt-action@v3
+      with:
+        version: '5.15.2'
+        arch: 'win64_msvc2019_64'
+        cache: false
+        modules: 'qtbase qttools qttranslations'
+
+    # 4️⃣ 验证 CMake 和 MSVC 可用
+    - name: Show environment
+      run: |
+        echo "PATH:"
+        echo %PATH%
+        where cl
+        cmake --version
+        qmake -version
+
+    # 5️⃣ 创建构建目录并配置 CMake
+    - name: Configure CMake
+      run: |
+        mkdir build
+        cd build
+        cmake .. -G "Visual Studio 16 2019" -A x64 -DVEYON_BUILD_WIN32=ON
