@@ -1,47 +1,65 @@
-name: Build Veyon Step 1 - Configure (Stable Qt Installer)
+name: Build Veyon Windows
 
 on:
-  workflow_dispatch:
   push:
-    branches: [ "*" ]
+    branches:
+      - main
+  pull_request:
 
 jobs:
-  windows:
+  build-windows:
     runs-on: windows-2022
 
+    env:
+      VSCMD_ARG_TGT_ARCH: x64  # MSVC 64-bit
+      PYTHONIOENCODING: utf-8
+
     steps:
-    - name: Checkout source
-      uses: actions/checkout@v4
+    - name: Checkout repository
+      uses: actions/checkout@v3
+
+    - name: Setup Python
+      uses: actions/setup-python@v4
       with:
-        submodules: recursive
+        python-version: 3.11
 
-    - name: Setup MSVC
-      uses: ilammy/msvc-dev-cmd@v1
+    - name: Install aqtinstall
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install aqtinstall
+
+    - name: Install Qt 6.8.3 MSVC2019
+      run: |
+        aqt install-qt windows desktop 6.8.3 msvc2019_64 --output-dir C:/Qt
+
+    - name: Add Qt to PATH
+      run: |
+        echo "C:\Qt\6.8.3\msvc2019_64\bin" >> $Env:GITHUB_PATH
+
+    - name: Install CMake
+      uses: lukka/get-cmake@v4
       with:
-        arch: x64
+        version: '3.27.6'
 
-    - name: Download Qt Online Installer
-      run: |
-        powershell -Command "Invoke-WebRequest -Uri https://download.qt.io/official_releases/online_installers/qt-unified-windows-x86-online.exe -OutFile qt-installer.exe"
-
-    - name: Install Qt 5.15.2
-      run: |
-        qt-installer.exe --script qt-installer-noninteractive.qs
-
-    - name: Set Qt Environment
-      run: |
-        echo "C:\\Qt\\Qt5.15.2\\5.15.2\\msvc2019_64\\bin" >> $env:GITHUB_PATH
-        setx Qt5_DIR "C:\\Qt\\Qt5.15.2\\5.15.2\\msvc2019_64\\lib\\cmake\\Qt5"
-
-    - name: Show environment
-      run: |
-        echo %PATH%
-        where cl
-        cmake --version
-        qmake -version
-
-    - name: Configure CMake
+    - name: Configure Veyon
       run: |
         mkdir build
         cd build
-        cmake .. -G "Visual Studio 16 2019" -A x64 -DVEYON_BUILD_WIN32=ON
+        cmake .. -G "Visual Studio 16 2019" -A x64 -DCMAKE_BUILD_TYPE=Release -DCMAKE_PREFIX_PATH=C:/Qt/6.8.3/msvc2019_64
+
+    - name: Build Veyon
+      run: |
+        cmake --build build --config Release
+
+    - name: Package
+      run: |
+        cd build
+        mkdir ReleasePackage
+        xcopy Release ReleasePackage /E /I
+        tar -czvf veyon-windows-release.tar.gz ReleasePackage
+
+    - name: Upload artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: veyon-windows
+        path: build/veyon-windows-release.tar.gz
